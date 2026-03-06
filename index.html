@@ -3,913 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Manifestor - Energy RPG</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --bg-deep: #0a0a1a;
-      --bg-card: #12122a;
-      --bg-card-hover: #1a1a3a;
-      --accent-primary: #7c5cfc;
-      --accent-glow: #a78bfa;
-      --accent-warm: #f59e0b;
-      --accent-rose: #f472b6;
-      --accent-cyan: #22d3ee;
-      --accent-green: #34d399;
-      --text-primary: #e8e8f0;
-      --text-secondary: #8888aa;
-      --text-dim: #555577;
-      --nav-bg: rgba(12, 12, 30, 0.95);
-      --border-subtle: rgba(124, 92, 252, 0.15);
-      --radius: 16px;
-      --radius-sm: 10px;
-    }
-
-    body {
-      font-family: 'Noto Sans TC', -apple-system, sans-serif;
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-      padding-bottom: 80px;
-    }
-
-    /* ==================== Background ambient ==================== */
-    .ambient-bg {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .ambient-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.15;
-      animation: float 8s ease-in-out infinite;
-    }
-    .ambient-orb:nth-child(1) {
-      width: 300px; height: 300px;
-      background: var(--accent-primary);
-      top: -50px; left: -50px;
-      animation-delay: 0s;
-    }
-    .ambient-orb:nth-child(2) {
-      width: 200px; height: 200px;
-      background: var(--accent-rose);
-      top: 40%; right: -30px;
-      animation-delay: -3s;
-    }
-    .ambient-orb:nth-child(3) {
-      width: 250px; height: 250px;
-      background: var(--accent-cyan);
-      bottom: 10%; left: 20%;
-      animation-delay: -5s;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-30px) scale(1.05); }
-    }
-
-    /* ==================== Page container ==================== */
-    .page {
-      display: none;
-      position: relative;
-      z-index: 1;
-      padding: 20px 16px;
-      animation: fadeIn 0.3s ease;
-    }
-    .page.active { display: block; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ==================== Header ==================== */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      padding-top: 8px;
-    }
-    .page-header h1 {
-      font-size: 24px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent-glow), var(--accent-cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .page-header .subtitle {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-    .avatar {
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-rose));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 0 20px rgba(124, 92, 252, 0.3);
-      cursor: pointer;
-    }
-
-    /* ==================== Energy Ring (Home) ==================== */
-    .energy-ring-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 8px 0 28px;
-    }
-    .energy-ring {
-      position: relative;
-      width: 200px; height: 200px;
-    }
-    .energy-ring svg {
-      width: 200px; height: 200px;
-      transform: rotate(-90deg);
-    }
-    .energy-ring .ring-bg {
-      fill: none;
-      stroke: rgba(124, 92, 252, 0.1);
-      stroke-width: 8;
-    }
-    .energy-ring .ring-fill {
-      fill: none;
-      stroke: url(#ringGradient);
-      stroke-width: 8;
-      stroke-linecap: round;
-      stroke-dasharray: 502;
-      stroke-dashoffset: 150;
-      transition: stroke-dashoffset 1s ease;
-    }
-    .energy-ring .ring-center {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-    }
-    .energy-ring .energy-value {
-      font-size: 42px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent-glow), var(--accent-warm));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .energy-ring .energy-label {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: -2px;
-    }
-    .energy-time {
-      margin-top: 12px;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-    .energy-time span {
-      color: var(--accent-warm);
-      font-weight: 500;
-    }
-
-    /* ==================== Cards ==================== */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 12px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    .card:hover, .card:active {
-      background: var(--bg-card-hover);
-      border-color: rgba(124, 92, 252, 0.3);
-      transform: translateY(-1px);
-    }
-    .card-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .card-icon {
-      width: 46px; height: 46px;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      flex-shrink: 0;
-    }
-    .card-icon.purple { background: rgba(124, 92, 252, 0.15); }
-    .card-icon.rose { background: rgba(244, 114, 182, 0.15); }
-    .card-icon.cyan { background: rgba(34, 211, 238, 0.15); }
-    .card-icon.amber { background: rgba(245, 158, 11, 0.15); }
-    .card-icon.green { background: rgba(52, 211, 153, 0.15); }
-    .card-info { flex: 1; min-width: 0; }
-    .card-title {
-      font-size: 15px;
-      font-weight: 500;
-      margin-bottom: 3px;
-    }
-    .card-desc {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-    .card-badge {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 500;
-      flex-shrink: 0;
-    }
-    .card-badge.active {
-      background: rgba(52, 211, 153, 0.15);
-      color: var(--accent-green);
-    }
-    .card-badge.locked {
-      background: rgba(85, 85, 119, 0.2);
-      color: var(--text-dim);
-    }
-
-    /* ==================== Section titles ==================== */
-    .section-title {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin: 20px 0 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border-subtle);
-    }
-
-    /* ==================== Stats row ==================== */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 14px 10px;
-      text-align: center;
-    }
-    .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-    }
-    .stat-value.purple { color: var(--accent-glow); }
-    .stat-value.amber { color: var(--accent-warm); }
-    .stat-value.green { color: var(--accent-green); }
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-top: 4px;
-    }
-
-    /* ==================== Quest page ==================== */
-    .quest-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .quest-tabs::-webkit-scrollbar { display: none; }
-    .quest-tab {
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-      white-space: nowrap;
-      border: 1px solid var(--border-subtle);
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .quest-tab.active {
-      background: var(--accent-primary);
-      border-color: var(--accent-primary);
-      color: white;
-    }
-
-    .quest-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .quest-check {
-      width: 24px; height: 24px;
-      border-radius: 50%;
-      border: 2px solid var(--text-dim);
-      flex-shrink: 0;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s;
-    }
-    .quest-check.done {
-      background: var(--accent-green);
-      border-color: var(--accent-green);
-    }
-    .quest-check.done::after {
-      content: '\2713';
-      color: white;
-      font-size: 14px;
-    }
-    .quest-content { flex: 1; }
-    .quest-name {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
-    .quest-meta {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-    .quest-xp {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--accent-warm);
-      flex-shrink: 0;
-    }
-
-    /* ==================== Garden (Mood) page ==================== */
-    .mood-selector {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-    .mood-btn {
-      aspect-ratio: 1;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-card);
-      font-size: 28px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: all 0.2s;
-    }
-    .mood-btn span {
-      font-size: 10px;
-      color: var(--text-secondary);
-    }
-    .mood-btn.selected {
-      border-color: var(--accent-primary);
-      background: rgba(124, 92, 252, 0.1);
-      box-shadow: 0 0 20px rgba(124, 92, 252, 0.15);
-    }
-
-    .garden-canvas {
-      width: 100%;
-      aspect-ratio: 1.2;
-      border-radius: var(--radius);
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      margin-bottom: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .garden-canvas canvas {
-      width: 100%;
-      height: 100%;
-    }
-    .garden-label {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 12px;
-      color: var(--text-secondary);
-      background: rgba(10, 10, 26, 0.7);
-      padding: 4px 14px;
-      border-radius: 20px;
-      backdrop-filter: blur(8px);
-    }
-
-    .inspiration-card {
-      background: linear-gradient(135deg, rgba(124, 92, 252, 0.2), rgba(244, 114, 182, 0.15));
-      border: 1px solid rgba(124, 92, 252, 0.3);
-      border-radius: var(--radius);
-      padding: 24px 20px;
-      text-align: center;
-      margin-bottom: 12px;
-      position: relative;
-      overflow: hidden;
-    }
-    .inspiration-card::before {
-      content: '';
-      position: absolute;
-      top: -50%; left: -50%;
-      width: 200%; height: 200%;
-      background: radial-gradient(circle, rgba(167, 139, 250, 0.08) 0%, transparent 60%);
-      animation: shimmer 4s ease-in-out infinite;
-    }
-    @keyframes shimmer {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(180deg); }
-    }
-    .inspiration-card .card-tag {
-      font-size: 11px;
-      color: var(--accent-glow);
-      margin-bottom: 12px;
-      position: relative;
-    }
-    .inspiration-card .card-text {
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1.6;
-      position: relative;
-    }
-    .draw-btn {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, var(--accent-primary), #9b6dff);
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-    .draw-btn:active {
-      transform: scale(0.98);
-    }
-
-    /* ==================== Oracle page ==================== */
-    .oracle-visual {
-      width: 100%;
-      aspect-ratio: 1;
-      max-width: 280px;
-      margin: 0 auto 24px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .oracle-circle {
-      width: 200px; height: 200px;
-      border-radius: 50%;
-      border: 2px solid rgba(124, 92, 252, 0.3);
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      animation: pulse-oracle 3s ease-in-out infinite;
-    }
-    @keyframes pulse-oracle {
-      0%, 100% { box-shadow: 0 0 30px rgba(124, 92, 252, 0.1); }
-      50% { box-shadow: 0 0 60px rgba(124, 92, 252, 0.25); }
-    }
-    .oracle-circle::before {
-      content: '';
-      position: absolute;
-      width: 240px; height: 240px;
-      border-radius: 50%;
-      border: 1px solid rgba(124, 92, 252, 0.1);
-      animation: spin 20s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .oracle-inner {
-      text-align: center;
-    }
-    .oracle-icon {
-      font-size: 48px;
-      margin-bottom: 8px;
-    }
-    .oracle-status {
-      font-size: 13px;
-      color: var(--accent-glow);
-    }
-
-    .decision-input-area {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-    .decision-input-area label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      display: block;
-      margin-bottom: 10px;
-    }
-    .decision-input-area textarea {
-      width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 12px;
-      color: var(--text-primary);
-      font-family: inherit;
-      font-size: 14px;
-      resize: none;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .decision-input-area textarea:focus {
-      border-color: var(--accent-primary);
-    }
-    .decision-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .decision-option {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      text-align: center;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .decision-option:active {
-      border-color: var(--accent-primary);
-      background: rgba(124, 92, 252, 0.1);
-    }
-
-    .guardian-cards {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    .guardian-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius);
-      padding: 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .guardian-card:hover {
-      border-color: rgba(124, 92, 252, 0.3);
-    }
-    .guardian-emoji {
-      font-size: 36px;
-      margin-bottom: 8px;
-    }
-    .guardian-name {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    .guardian-role {
-      font-size: 11px;
-      color: var(--text-secondary);
-    }
-    .guardian-level {
-      font-size: 11px;
-      color: var(--accent-warm);
-      margin-top: 6px;
-    }
-
-    /* ==================== Profile page ==================== */
-    .profile-header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    .profile-avatar {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-rose));
-      margin: 0 auto 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 36px;
-      box-shadow: 0 0 40px rgba(124, 92, 252, 0.25);
-    }
-    .profile-name {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-    .profile-title {
-      font-size: 13px;
-      color: var(--accent-glow);
-    }
-    .profile-level {
-      margin-top: 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      justify-content: center;
-    }
-    .profile-level-text {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-    .profile-level-text strong {
-      color: var(--accent-warm);
-    }
-    .level-bar {
-      flex: 0 0 120px;
-      height: 6px;
-      background: rgba(124, 92, 252, 0.15);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .level-bar-fill {
-      height: 100%;
-      width: 65%;
-      background: linear-gradient(90deg, var(--accent-primary), var(--accent-warm));
-      border-radius: 3px;
-    }
-
-    .badge-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .badge-item {
-      aspect-ratio: 1;
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      font-size: 24px;
-    }
-    .badge-item.locked {
-      opacity: 0.3;
-    }
-    .badge-item span {
-      font-size: 10px;
-      color: var(--text-secondary);
-    }
-
-    /* Energy chart placeholder */
-    .energy-chart {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius);
-      padding: 20px 16px;
-      margin-bottom: 12px;
-    }
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .chart-title {
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .chart-period {
-      font-size: 12px;
-      color: var(--accent-glow);
-      cursor: pointer;
-    }
-    .chart-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      height: 100px;
-    }
-    .chart-bar-wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-    .chart-bar {
-      width: 100%;
-      border-radius: 4px 4px 0 0;
-      transition: height 0.5s ease;
-    }
-    .chart-bar-label {
-      font-size: 10px;
-      color: var(--text-dim);
-    }
-
-    /* ==================== Focus mode overlay ==================== */
-    .focus-timer {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius);
-      padding: 32px 20px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .focus-time {
-      font-size: 56px;
-      font-weight: 300;
-      font-variant-numeric: tabular-nums;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-glow));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-    }
-    .focus-label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-bottom: 20px;
-    }
-    .focus-phases {
-      display: flex;
-      gap: 4px;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .focus-phase {
-      width: 40px;
-      height: 4px;
-      border-radius: 2px;
-      background: rgba(124, 92, 252, 0.15);
-    }
-    .focus-phase.active {
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-primary));
-    }
-    .focus-phase.done {
-      background: var(--accent-green);
-    }
-    .focus-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 32px;
-      border: none;
-      border-radius: 30px;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-    .focus-btn:active { transform: scale(0.97); }
-
-    /* ==================== Companion chat ==================== */
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .chat-bubble {
-      max-width: 85%;
-      padding: 12px 16px;
-      border-radius: 16px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .chat-bubble.bot {
-      align-self: flex-start;
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-bottom-left-radius: 4px;
-    }
-    .chat-bubble.user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, var(--accent-primary), #6b4fe0);
-      border-bottom-right-radius: 4px;
-    }
-    .chat-input-row {
-      display: flex;
-      gap: 10px;
-    }
-    .chat-input {
-      flex: 1;
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 24px;
-      padding: 12px 18px;
-      color: var(--text-primary);
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-    }
-    .chat-input:focus { border-color: var(--accent-primary); }
-    .chat-send {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      background: var(--accent-primary);
-      border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    /* ==================== Ritual section ==================== */
-    .ritual-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .ritual-item:active { background: var(--bg-card-hover); }
-    .ritual-icon { font-size: 24px; }
-    .ritual-info { flex: 1; }
-    .ritual-name { font-size: 14px; font-weight: 500; }
-    .ritual-dur { font-size: 12px; color: var(--text-secondary); }
-    .ritual-energy {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--accent-green);
-    }
-
-    /* ==================== Bottom Navigation ==================== */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 70px;
-      background: var(--nav-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 12px;
-      transition: all 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .nav-item .nav-icon {
-      font-size: 22px;
-      transition: transform 0.2s;
-    }
-    .nav-item .nav-label {
-      font-size: 10px;
-      color: var(--text-dim);
-      transition: color 0.2s;
-    }
-    .nav-item.active .nav-icon {
-      transform: scale(1.15);
-    }
-    .nav-item.active .nav-label {
-      color: var(--accent-glow);
-      font-weight: 500;
-    }
-
-    /* ==================== Utility ==================== */
-    .mt-4 { margin-top: 4px; }
-    .mt-8 { margin-top: 8px; }
-    .text-center { text-align: center; }
-    .tag {
-      display: inline-block;
-      font-size: 11px;
-      padding: 2px 10px;
-      border-radius: 20px;
-      margin-right: 4px;
-    }
-    .tag.purple { background: rgba(124,92,252,0.15); color: var(--accent-glow); }
-    .tag.warm { background: rgba(245,158,11,0.15); color: var(--accent-warm); }
-    .tag.cyan { background: rgba(34,211,238,0.15); color: var(--accent-cyan); }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 0; height: 0; }
-  </style>
+  <title>Manifestor - 能量 RPG</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -919,17 +14,62 @@
   <div class="ambient-orb"></div>
 </div>
 
+<!-- ==================== CHECK-IN MODAL ==================== -->
+<div class="modal-overlay" id="checkinModal">
+  <div class="modal">
+    <h2>每日能量打卡</h2>
+    <div class="modal-sub" id="checkinDate"></div>
+
+    <div class="modal-section">
+      <label>現在的能量值</label>
+      <div class="energy-slider-row">
+        <input type="range" class="energy-slider" id="checkinEnergy" min="0" max="100" value="50">
+        <div class="slider-value" id="checkinEnergyVal">50</div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <label>能量狀態</label>
+      <div class="checkin-mood-grid">
+        <div class="checkin-mood-btn" data-mood="平靜" onclick="selectCheckinMood(this)">&#128524;<span>平靜</span></div>
+        <div class="checkin-mood-btn" data-mood="充電中" onclick="selectCheckinMood(this)">&#128171;<span>充電中</span></div>
+        <div class="checkin-mood-btn" data-mood="流動" onclick="selectCheckinMood(this)">&#127800;<span>流動</span></div>
+        <div class="checkin-mood-btn" data-mood="耗盡" onclick="selectCheckinMood(this)">&#128148;<span>耗盡</span></div>
+        <div class="checkin-mood-btn" data-mood="燃燒" onclick="selectCheckinMood(this)">&#128293;<span>燃燒</span></div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <label>今日筆記（選填）</label>
+      <textarea class="checkin-note" id="checkinNote" placeholder="記錄一下今天的狀態、想法..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeCheckin()">稍後再說</button>
+      <button class="btn-primary" onclick="submitCheckin()">完成打卡</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== PAGE: HOME ==================== -->
 <div class="page active" id="page-home">
   <div class="page-header">
     <div>
       <h1>Manifestor</h1>
-      <div class="subtitle">Ting's Energy Dashboard</div>
+      <div class="subtitle">Ting 的能量儀表板</div>
     </div>
     <div class="avatar" onclick="switchPage('profile')">T</div>
   </div>
 
-  <!-- Energy Ring -->
+  <div class="checkin-banner" id="checkinBanner" onclick="openCheckin()">
+    <div class="banner-icon">&#128204;</div>
+    <div class="banner-info">
+      <div class="banner-title">每日能量打卡</div>
+      <div class="banner-desc" id="checkinBannerDesc">記錄今天的能量狀態</div>
+    </div>
+    <div class="banner-action" id="checkinBannerAction">立即打卡</div>
+  </div>
+
   <div class="energy-ring-container">
     <div class="energy-ring">
       <svg viewBox="0 0 180 180">
@@ -940,43 +80,41 @@
           </linearGradient>
         </defs>
         <circle class="ring-bg" cx="90" cy="90" r="80"/>
-        <circle class="ring-fill" cx="90" cy="90" r="80"/>
+        <circle class="ring-fill" cx="90" cy="90" r="80" id="energyRing"/>
       </svg>
       <div class="ring-center">
-        <div class="energy-value">70</div>
-        <div class="energy-label">Energy</div>
+        <div class="energy-value" id="homeEnergyValue">--</div>
+        <div class="energy-label">能量值</div>
       </div>
     </div>
-    <div class="energy-time">Peak window: <span>10:00 - 12:30</span></div>
+    <div class="energy-time">連續打卡：<span id="homeStreak">0 天</span></div>
   </div>
 
-  <!-- Stats -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-value purple">12</div>
-      <div class="stat-label">Daily Streak</div>
+      <div class="stat-value purple" id="homeStreakVal">0</div>
+      <div class="stat-label">連續天數</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value amber">850</div>
-      <div class="stat-label">XP</div>
+      <div class="stat-value amber" id="homeXP">0</div>
+      <div class="stat-label">經驗值</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value green">Lv.5</div>
-      <div class="stat-label">Level</div>
+      <div class="stat-value green" id="homeLevel">Lv.1</div>
+      <div class="stat-label">等級</div>
     </div>
   </div>
 
-  <!-- Quick Actions -->
-  <div class="section-title">Quick Actions</div>
+  <div class="section-title">快速入口</div>
 
   <div class="card" onclick="switchPage('quests')">
     <div class="card-row">
       <div class="card-icon purple">&#9889;</div>
       <div class="card-info">
-        <div class="card-title">Vibe Tasks</div>
-        <div class="card-desc">3 quests remaining today</div>
+        <div class="card-title">能量任務</div>
+        <div class="card-desc" id="homeQuestDesc">今天還有 5 個任務待完成</div>
       </div>
-      <div class="card-badge active">Active</div>
+      <div class="card-badge active">進行中</div>
     </div>
   </div>
 
@@ -984,10 +122,10 @@
     <div class="card-row">
       <div class="card-icon rose">&#127800;</div>
       <div class="card-info">
-        <div class="card-title">Mood Garden</div>
-        <div class="card-desc">Record today's energy vibe</div>
+        <div class="card-title">心情花園</div>
+        <div class="card-desc">記錄今天的能量狀態</div>
       </div>
-      <div class="card-badge active">New</div>
+      <div class="card-badge active">新</div>
     </div>
   </div>
 
@@ -995,36 +133,36 @@
     <div class="card-row">
       <div class="card-icon cyan">&#128302;</div>
       <div class="card-info">
-        <div class="card-title">Decision Oracle</div>
-        <div class="card-desc">Let intuition guide you</div>
+        <div class="card-title">決策神諭</div>
+        <div class="card-desc">讓直覺引導你</div>
       </div>
-      <div class="card-badge active">Ready</div>
+      <div class="card-badge active">就緒</div>
     </div>
   </div>
 
-  <div class="section-title">Micro Rituals</div>
+  <div class="section-title">微小儀式</div>
 
-  <div class="ritual-item" onclick="completeRitual(this)">
+  <div class="ritual-item" data-ritual="晨間接地呼吸" onclick="completeRitual(this)">
     <div class="ritual-icon">&#9728;&#65039;</div>
     <div class="ritual-info">
-      <div class="ritual-name">Morning grounding breath</div>
-      <div class="ritual-dur">3 min</div>
+      <div class="ritual-name">晨間接地呼吸</div>
+      <div class="ritual-dur">3 分鐘</div>
     </div>
     <div class="ritual-energy">+5</div>
   </div>
-  <div class="ritual-item" onclick="completeRitual(this)">
+  <div class="ritual-item" data-ritual="補水提醒" onclick="completeRitual(this)">
     <div class="ritual-icon">&#128167;</div>
     <div class="ritual-info">
-      <div class="ritual-name">Hydration check-in</div>
-      <div class="ritual-dur">30 sec</div>
+      <div class="ritual-name">補水提醒</div>
+      <div class="ritual-dur">30 秒</div>
     </div>
     <div class="ritual-energy">+2</div>
   </div>
-  <div class="ritual-item" onclick="completeRitual(this)">
+  <div class="ritual-item" data-ritual="晚間能量釋放" onclick="completeRitual(this)">
     <div class="ritual-icon">&#127769;</div>
     <div class="ritual-info">
-      <div class="ritual-name">Evening energy release</div>
-      <div class="ritual-dur">5 min</div>
+      <div class="ritual-name">晚間能量釋放</div>
+      <div class="ritual-dur">5 分鐘</div>
     </div>
     <div class="ritual-energy">+8</div>
   </div>
@@ -1034,66 +172,64 @@
 <div class="page" id="page-quests">
   <div class="page-header">
     <div>
-      <h1>Quests</h1>
-      <div class="subtitle">Daily missions & focus mode</div>
+      <h1>任務</h1>
+      <div class="subtitle">每日任務與專注模式</div>
     </div>
   </div>
 
   <div class="quest-tabs">
-    <div class="quest-tab active" onclick="switchQuestTab(this, 'tasks')">Vibe Tasks</div>
-    <div class="quest-tab" onclick="switchQuestTab(this, 'focus')">Focus Mode</div>
-    <div class="quest-tab" onclick="switchQuestTab(this, 'rituals')">Rituals</div>
+    <div class="quest-tab active" onclick="switchQuestTab(this, 'tasks')">能量任務</div>
+    <div class="quest-tab" onclick="switchQuestTab(this, 'focus')">專注模式</div>
+    <div class="quest-tab" onclick="switchQuestTab(this, 'rituals')">微小儀式</div>
   </div>
 
-  <!-- Vibe Tasks -->
   <div id="quest-tasks">
     <div class="quest-item">
-      <div class="quest-check done"></div>
+      <div class="quest-check" data-quest="晨間能量掃描" onclick="toggleQuest(this)"></div>
       <div class="quest-content">
-        <div class="quest-name">Morning energy scan</div>
-        <div class="quest-meta">Record waking energy level</div>
+        <div class="quest-name">晨間能量掃描</div>
+        <div class="quest-meta">記錄起床時的能量狀態</div>
       </div>
       <div class="quest-xp">+20 XP</div>
     </div>
     <div class="quest-item">
-      <div class="quest-check" onclick="toggleQuest(this)"></div>
+      <div class="quest-check" data-quest="創意爆發時段" onclick="toggleQuest(this)"></div>
       <div class="quest-content">
-        <div class="quest-name">Creative burst session</div>
-        <div class="quest-meta">25-min deep work block</div>
+        <div class="quest-name">創意爆發時段</div>
+        <div class="quest-meta">25 分鐘深度工作</div>
       </div>
       <div class="quest-xp">+40 XP</div>
     </div>
     <div class="quest-item">
-      <div class="quest-check" onclick="toggleQuest(this)"></div>
+      <div class="quest-check" data-quest="界限宣告" onclick="toggleQuest(this)"></div>
       <div class="quest-content">
-        <div class="quest-name">Boundary declaration</div>
-        <div class="quest-meta">Inform before initiating</div>
+        <div class="quest-name">界限宣告</div>
+        <div class="quest-meta">行動前先告知</div>
       </div>
       <div class="quest-xp">+30 XP</div>
     </div>
     <div class="quest-item">
-      <div class="quest-check" onclick="toggleQuest(this)"></div>
+      <div class="quest-check" data-quest="無罪惡感休息" onclick="toggleQuest(this)"></div>
       <div class="quest-content">
-        <div class="quest-name">Rest without guilt</div>
-        <div class="quest-meta">15-min intentional rest</div>
+        <div class="quest-name">無罪惡感休息</div>
+        <div class="quest-meta">15 分鐘刻意休息</div>
       </div>
       <div class="quest-xp">+25 XP</div>
     </div>
     <div class="quest-item">
-      <div class="quest-check" onclick="toggleQuest(this)"></div>
+      <div class="quest-check" data-quest="晚間回顧" onclick="toggleQuest(this)"></div>
       <div class="quest-content">
-        <div class="quest-name">Evening reflection</div>
-        <div class="quest-meta">Write 3 gratitudes</div>
+        <div class="quest-name">晚間回顧</div>
+        <div class="quest-meta">寫下 3 件感恩的事</div>
       </div>
       <div class="quest-xp">+15 XP</div>
     </div>
   </div>
 
-  <!-- Focus Mode -->
   <div id="quest-focus" style="display:none">
     <div class="focus-timer">
       <div class="focus-time" id="focus-display">25:00</div>
-      <div class="focus-label">Slow-heat focus: gentle start, deep flow</div>
+      <div class="focus-label">慢熱專注：溫和啟動，漸入深流</div>
       <div class="focus-phases">
         <div class="focus-phase done"></div>
         <div class="focus-phase active"></div>
@@ -1101,56 +237,54 @@
         <div class="focus-phase"></div>
         <div class="focus-phase"></div>
       </div>
-      <button class="focus-btn" onclick="toggleFocus(this)">&#9654; Start Focus</button>
+      <button class="focus-btn" onclick="toggleFocus(this)">&#9654; 開始專注</button>
     </div>
-
     <div class="stats-row">
       <div class="stat-card">
-        <div class="stat-value cyan" style="color: var(--accent-cyan)">4</div>
-        <div class="stat-label">Sessions Today</div>
+        <div class="stat-value cyan" style="color: var(--accent-cyan)" id="focusSessions">0</div>
+        <div class="stat-label">今日次數</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value amber">1.5h</div>
-        <div class="stat-label">Total Focus</div>
+        <div class="stat-value amber" id="focusTotal">0h</div>
+        <div class="stat-label">累計專注</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value green">3</div>
-        <div class="stat-label">Medals</div>
+        <div class="stat-value green" id="focusMedals">0</div>
+        <div class="stat-label">勳章</div>
       </div>
     </div>
   </div>
 
-  <!-- Rituals -->
   <div id="quest-rituals" style="display:none">
-    <div class="ritual-item" onclick="completeRitual(this)">
+    <div class="ritual-item" data-ritual="拜日式伸展" onclick="completeRitual(this)">
       <div class="ritual-icon">&#127774;</div>
       <div class="ritual-info">
-        <div class="ritual-name">Sun salutation stretch</div>
-        <div class="ritual-dur">5 min</div>
+        <div class="ritual-name">拜日式伸展</div>
+        <div class="ritual-dur">5 分鐘</div>
       </div>
       <div class="ritual-energy">+8</div>
     </div>
-    <div class="ritual-item" onclick="completeRitual(this)">
+    <div class="ritual-item" data-ritual="正念茶道" onclick="completeRitual(this)">
       <div class="ritual-icon">&#127861;</div>
       <div class="ritual-info">
-        <div class="ritual-name">Mindful tea ceremony</div>
-        <div class="ritual-dur">10 min</div>
+        <div class="ritual-name">正念茶道</div>
+        <div class="ritual-dur">10 分鐘</div>
       </div>
       <div class="ritual-energy">+10</div>
     </div>
-    <div class="ritual-item" onclick="completeRitual(this)">
+    <div class="ritual-item" data-ritual="自由書寫腦內清空" onclick="completeRitual(this)">
       <div class="ritual-icon">&#9997;&#65039;</div>
       <div class="ritual-info">
-        <div class="ritual-name">Free-write brain dump</div>
-        <div class="ritual-dur">7 min</div>
+        <div class="ritual-name">自由書寫腦內清空</div>
+        <div class="ritual-dur">7 分鐘</div>
       </div>
       <div class="ritual-energy">+6</div>
     </div>
-    <div class="ritual-item" onclick="completeRitual(this)">
+    <div class="ritual-item" data-ritual="視覺冥想：能量重置" onclick="completeRitual(this)">
       <div class="ritual-icon">&#127752;</div>
       <div class="ritual-info">
-        <div class="ritual-name">Visualization: energy reset</div>
-        <div class="ritual-dur">3 min</div>
+        <div class="ritual-name">視覺冥想：能量重置</div>
+        <div class="ritual-dur">3 分鐘</div>
       </div>
       <div class="ritual-energy">+5</div>
     </div>
@@ -1161,94 +295,91 @@
 <div class="page" id="page-garden">
   <div class="page-header">
     <div>
-      <h1>Soul Garden</h1>
-      <div class="subtitle">Mood particles & creative sparks</div>
+      <h1>心靈花園</h1>
+      <div class="subtitle">心情粒子與創意火花</div>
     </div>
   </div>
 
-  <div class="section-title">How's your energy vibe?</div>
+  <div class="section-title">現在的能量狀態？</div>
   <div class="mood-selector">
-    <div class="mood-btn" onclick="selectMood(this)">&#128524;<span>Calm</span></div>
-    <div class="mood-btn" onclick="selectMood(this)">&#128171;<span>Charged</span></div>
-    <div class="mood-btn selected" onclick="selectMood(this)">&#127800;<span>Flowing</span></div>
-    <div class="mood-btn" onclick="selectMood(this)">&#128148;<span>Drained</span></div>
-    <div class="mood-btn" onclick="selectMood(this)">&#128293;<span>Fired up</span></div>
+    <div class="mood-btn" onclick="selectMood(this)">&#128524;<span>平靜</span></div>
+    <div class="mood-btn" onclick="selectMood(this)">&#128171;<span>充電中</span></div>
+    <div class="mood-btn selected" onclick="selectMood(this)">&#127800;<span>流動</span></div>
+    <div class="mood-btn" onclick="selectMood(this)">&#128148;<span>耗盡</span></div>
+    <div class="mood-btn" onclick="selectMood(this)">&#128293;<span>燃燒</span></div>
   </div>
 
-  <!-- Particle garden canvas -->
   <div class="garden-canvas">
     <canvas id="gardenCanvas"></canvas>
-    <div class="garden-label">Your energy particles are flowing gently</div>
+    <div class="garden-label">你的能量粒子正輕柔地流動</div>
   </div>
 
-  <div class="section-title">Daily Inspiration Card</div>
+  <div class="section-title">每日靈感卡</div>
   <div class="inspiration-card">
-    <div class="card-tag">CARD #42 / Creative Flow</div>
+    <div class="card-tag">卡片 #42 / 創意之流</div>
     <div class="card-text">
-      "Your urge to act IS the signal.<br/>
-      Trust the impulse. Inform, then move."
+      「你想行動的衝動，就是訊號本身。<br/>
+      相信那股推力。告知，然後行動。」
     </div>
   </div>
-  <button class="draw-btn" onclick="drawCard()">Draw New Inspiration Card</button>
+  <button class="draw-btn" onclick="drawCard()">抽取新的靈感卡</button>
 </div>
 
 <!-- ==================== PAGE: ORACLE ==================== -->
 <div class="page" id="page-oracle">
   <div class="page-header">
     <div>
-      <h1>Oracle</h1>
-      <div class="subtitle">Decision guide & inner guardians</div>
+      <h1>神諭</h1>
+      <div class="subtitle">決策指引與內在守護者</div>
     </div>
   </div>
 
-  <!-- Decision Oracle -->
   <div class="oracle-visual">
     <div class="oracle-circle">
       <div class="oracle-inner">
         <div class="oracle-icon">&#128302;</div>
-        <div class="oracle-status">Awaiting your question</div>
+        <div class="oracle-status">等待你的提問</div>
       </div>
     </div>
   </div>
 
   <div class="decision-input-area">
-    <label>What decision is weighing on you?</label>
-    <textarea rows="2" placeholder="e.g. Should I take on this new project?"></textarea>
+    <label>什麼決定正讓你猶豫不決？</label>
+    <textarea rows="2" placeholder="例如：我該接下這個新專案嗎？"></textarea>
   </div>
 
   <div class="decision-options">
-    <div class="decision-option" onclick="chooseDecision(this)">Option A<br/><span style="font-size:12px;color:var(--text-secondary)">Go for it</span></div>
-    <div class="decision-option" onclick="chooseDecision(this)">Option B<br/><span style="font-size:12px;color:var(--text-secondary)">Wait & observe</span></div>
+    <div class="decision-option" onclick="chooseDecision(this)">選項 A<br/><span style="font-size:12px;color:var(--text-secondary)">直接行動</span></div>
+    <div class="decision-option" onclick="chooseDecision(this)">選項 B<br/><span style="font-size:12px;color:var(--text-secondary)">等待觀察</span></div>
   </div>
 
-  <button class="draw-btn" style="margin-bottom: 24px" onclick="consultOracle()">Consult the Oracle</button>
+  <button class="draw-btn" style="margin-bottom: 24px" onclick="consultOracle()">諮詢神諭</button>
 
-  <!-- Inner Guardians -->
-  <div class="section-title">Inner Guardians</div>
+  <div class="section-title">內在守護者</div>
   <div class="guardian-cards">
     <div class="guardian-card">
       <div class="guardian-emoji">&#128737;&#65039;</div>
-      <div class="guardian-name">Protector</div>
-      <div class="guardian-role">Boundaries & safety</div>
-      <div class="guardian-level">Lv.4 | 320 pts</div>
+      <div class="guardian-name">守護者</div>
+      <div class="guardian-role">界限與安全感</div>
+      <div class="guardian-level">Lv.4 | 320 點</div>
     </div>
     <div class="guardian-card">
       <div class="guardian-emoji">&#127912;</div>
-      <div class="guardian-name">Creator</div>
-      <div class="guardian-role">Inspiration & flow</div>
-      <div class="guardian-level">Lv.6 | 580 pts</div>
+      <div class="guardian-name">創造者</div>
+      <div class="guardian-role">靈感與心流</div>
+      <div class="guardian-level">Lv.6 | 580 點</div>
     </div>
     <div class="guardian-card">
       <div class="guardian-emoji">&#129505;</div>
-      <div class="guardian-name">Healer</div>
-      <div class="guardian-role">Rest & recovery</div>
-      <div class="guardian-level">Lv.3 | 210 pts</div>
+      <div class="guardian-name">療癒者</div>
+      <div class="guardian-role">休息與恢復</div>
+      <div class="guardian-level">Lv.3 | 210 點</div>
     </div>
     <div class="guardian-card">
       <div class="guardian-emoji">&#128640;</div>
-      <div class="guardian-name">Initiator</div>
-      <div class="guardian-role">Action & impulse</div>
-      <div class="guardian-level">Lv.7 | 720 pts</div>
+      <div class="guardian-name">發起者</div>
+      <div class="guardian-role">行動與衝勁</div>
+      <div class="guardian-level">Lv.7 | 720 點</div>
     </div>
   </div>
 </div>
@@ -1257,97 +388,121 @@
 <div class="page" id="page-profile">
   <div class="page-header">
     <div>
-      <h1>Profile</h1>
-      <div class="subtitle">Energy analytics & achievements</div>
+      <h1>個人檔案</h1>
+      <div class="subtitle">能量分析與成就</div>
     </div>
   </div>
 
   <div class="profile-header">
     <div class="profile-avatar">T</div>
     <div class="profile-name">Ting</div>
-    <div class="profile-title">Manifestor / Energy Architect</div>
+    <div class="profile-title">顯示者 / 能量建築師</div>
     <div class="profile-level">
-      <div class="profile-level-text">Lv.<strong>5</strong></div>
-      <div class="level-bar"><div class="level-bar-fill"></div></div>
-      <div class="profile-level-text">850/1200 XP</div>
+      <div class="profile-level-text">等級 <strong id="profileLevel">1</strong></div>
+      <div class="level-bar"><div class="level-bar-fill" id="profileLevelBar"></div></div>
+      <div class="profile-level-text"><span id="profileXP">0</span>/200 XP</div>
     </div>
   </div>
 
-  <!-- Energy Load Analysis -->
-  <div class="energy-chart">
-    <div class="chart-header">
-      <div class="chart-title">Weekly Energy Load</div>
-      <div class="chart-period">This week</div>
+  <div class="review-tabs">
+    <div class="review-tab active" onclick="switchReview(this, 'weekly')">本週盤點</div>
+    <div class="review-tab" onclick="switchReview(this, 'monthly')">月度盤點</div>
+    <div class="review-tab" onclick="switchReview(this, 'log')">打卡紀錄</div>
+  </div>
+
+  <div class="review-panel active" id="review-weekly">
+    <div class="energy-chart">
+      <div class="chart-header">
+        <div class="chart-title">每週能量曲線</div>
+        <div class="chart-period" id="weeklyPeriod">本週</div>
+      </div>
+      <div class="chart-bars" id="weeklyBars"></div>
     </div>
-    <div class="chart-bars">
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar" style="height:65%;background:linear-gradient(to top,var(--accent-primary),var(--accent-glow))"></div>
-        <div class="chart-bar-label">Mon</div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value purple" id="weeklyAvg">--</div>
+        <div class="stat-label">平均能量</div>
       </div>
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar" style="height:80%;background:linear-gradient(to top,var(--accent-primary),var(--accent-warm))"></div>
-        <div class="chart-bar-label">Tue</div>
+      <div class="stat-card">
+        <div class="stat-value amber" id="weeklyCheckins">0</div>
+        <div class="stat-label">打卡天數</div>
       </div>
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar" style="height:45%;background:linear-gradient(to top,var(--accent-primary),var(--accent-cyan))"></div>
-        <div class="chart-bar-label">Wed</div>
+      <div class="stat-card">
+        <div class="stat-value green" id="weeklyRituals">0</div>
+        <div class="stat-label">完成儀式</div>
       </div>
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar" style="height:70%;background:linear-gradient(to top,var(--accent-primary),var(--accent-glow))"></div>
-        <div class="chart-bar-label">Thu</div>
-      </div>
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar" style="height:90%;background:linear-gradient(to top,var(--accent-primary),var(--accent-green))"></div>
-        <div class="chart-bar-label">Fri</div>
-      </div>
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar" style="height:55%;background:linear-gradient(to top,var(--accent-primary),var(--accent-rose))"></div>
-        <div class="chart-bar-label">Sat</div>
-      </div>
-      <div class="chart-bar-wrapper">
-        <div class="chart-bar" style="height:35%;background:linear-gradient(to top,var(--accent-primary),var(--accent-cyan))"></div>
-        <div class="chart-bar-label">Sun</div>
-      </div>
+    </div>
+    <div class="section-title">本週心情分佈</div>
+    <div class="mood-summary" id="weeklyMoods"></div>
+    <div class="insight-card" id="weeklyInsight">
+      <div class="insight-title">能量洞察</div>
+      <div class="insight-text">累積更多打卡資料後，這裡會出現你的能量趨勢分析。</div>
     </div>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-value purple">63</div>
-      <div class="stat-label">Avg Energy</div>
+  <div class="review-panel" id="review-monthly">
+    <div class="energy-chart">
+      <div class="chart-header">
+        <div class="chart-title">月度能量熱力圖</div>
+        <div class="chart-period" id="monthlyPeriod">本月</div>
+      </div>
+      <div class="heatmap">
+        <div class="heatmap-label">一</div>
+        <div class="heatmap-label">二</div>
+        <div class="heatmap-label">三</div>
+        <div class="heatmap-label">四</div>
+        <div class="heatmap-label">五</div>
+        <div class="heatmap-label">六</div>
+        <div class="heatmap-label">日</div>
+      </div>
+      <div class="heatmap" id="monthlyHeatmap"></div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value amber">142</div>
-      <div class="stat-label">Decisions</div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value purple" id="monthlyAvg">--</div>
+        <div class="stat-label">平均能量</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value amber" id="monthlyCheckins">0</div>
+        <div class="stat-label">打卡天數</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value green" id="monthlyQuests">0</div>
+        <div class="stat-label">完成任務</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value green">28</div>
-      <div class="stat-label">Rituals Done</div>
+    <div class="section-title">月度心情分佈</div>
+    <div class="mood-summary" id="monthlyMoods"></div>
+    <div class="insight-card" id="monthlyInsight">
+      <div class="insight-title">月度洞察</div>
+      <div class="insight-text">累積更多打卡資料後，這裡會出現你的月度能量分析。</div>
     </div>
   </div>
 
-  <!-- Badges -->
-  <div class="section-title">Achievement Badges</div>
-  <div class="badge-grid">
-    <div class="badge-item">&#127775;<span>7-day</span></div>
-    <div class="badge-item">&#128293;<span>Focus</span></div>
-    <div class="badge-item">&#127800;<span>Garden</span></div>
-    <div class="badge-item">&#128302;<span>Oracle</span></div>
-    <div class="badge-item">&#128737;&#65039;<span>Guard</span></div>
-    <div class="badge-item">&#127861;<span>Ritual</span></div>
-    <div class="badge-item locked">&#128274;<span>???</span></div>
-    <div class="badge-item locked">&#128274;<span>???</span></div>
+  <div class="review-panel" id="review-log">
+    <div class="checkin-log" id="checkinLog"></div>
   </div>
 
-  <!-- Companion chat preview -->
-  <div class="section-title">Vibe Companion</div>
+  <div class="section-title">成就徽章</div>
+  <div class="badge-grid" id="badgeGrid">
+    <div class="badge-item locked" data-badge="streak7">&#127775;<span>七日</span></div>
+    <div class="badge-item locked" data-badge="focus">&#128293;<span>專注</span></div>
+    <div class="badge-item locked" data-badge="garden">&#127800;<span>花園</span></div>
+    <div class="badge-item locked" data-badge="oracle">&#128302;<span>神諭</span></div>
+    <div class="badge-item locked" data-badge="guard">&#128737;&#65039;<span>守護</span></div>
+    <div class="badge-item locked" data-badge="ritual">&#127861;<span>儀式</span></div>
+    <div class="badge-item locked" data-badge="streak30">&#128274;<span>???</span></div>
+    <div class="badge-item locked" data-badge="master">&#128274;<span>???</span></div>
+  </div>
+
+  <div class="section-title">能量夥伴</div>
   <div class="chat-container">
-    <div class="chat-bubble bot">Hey Ting! Your energy today looks steady. Want to do a quick check-in or draw an inspiration card?</div>
-    <div class="chat-bubble user">Let's do a check-in. I feel a creative urge but also a bit drained.</div>
-    <div class="chat-bubble bot">Classic Manifestor tension! Your Creator guardian is at Lv.6 -- channel that urge into a short burst, then let your Healer rest you. Try: 15 min create, 10 min rest.</div>
+    <div class="chat-bubble bot">嗨 Ting！你今天的能量看起來很穩定。想做個快速能量掃描，還是抽一張靈感卡？</div>
+    <div class="chat-bubble user">來做個掃描吧。我感覺有創作衝動，但同時有點耗盡。</div>
+    <div class="chat-bubble bot">經典的顯示者張力！你的創造者守護已經 Lv.6 -- 把那股衝動導入一段短爆發，然後讓療癒者帶你休息。試試：15 分鐘創作，10 分鐘休息。</div>
   </div>
   <div class="chat-input-row">
-    <input class="chat-input" type="text" placeholder="Talk to your Vibe Companion...">
+    <input class="chat-input" type="text" placeholder="和你的能量夥伴聊聊...">
     <button class="chat-send">&#10148;</button>
   </div>
 </div>
@@ -1356,272 +511,28 @@
 <nav class="bottom-nav">
   <div class="nav-item active" onclick="switchPage('home')">
     <div class="nav-icon">&#127968;</div>
-    <div class="nav-label">Home</div>
+    <div class="nav-label">首頁</div>
   </div>
   <div class="nav-item" onclick="switchPage('quests')">
     <div class="nav-icon">&#9889;</div>
-    <div class="nav-label">Quests</div>
+    <div class="nav-label">任務</div>
   </div>
   <div class="nav-item" onclick="switchPage('garden')">
     <div class="nav-icon">&#127800;</div>
-    <div class="nav-label">Garden</div>
+    <div class="nav-label">花園</div>
   </div>
   <div class="nav-item" onclick="switchPage('oracle')">
     <div class="nav-icon">&#128302;</div>
-    <div class="nav-label">Oracle</div>
+    <div class="nav-label">神諭</div>
   </div>
   <div class="nav-item" onclick="switchPage('profile')">
     <div class="nav-icon">&#128100;</div>
-    <div class="nav-label">Profile</div>
+    <div class="nav-label">個人</div>
   </div>
 </nav>
 
-<script>
-  // ==================== Navigation ====================
-  function switchPage(name) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const navItems = document.querySelectorAll('.nav-item');
-    const map = { home: 0, quests: 1, garden: 2, oracle: 3, profile: 4 };
-    if (map[name] !== undefined) navItems[map[name]].classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // ==================== Quest tabs ====================
-  function switchQuestTab(el, tab) {
-    document.querySelectorAll('.quest-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('quest-tasks').style.display = tab === 'tasks' ? 'block' : 'none';
-    document.getElementById('quest-focus').style.display = tab === 'focus' ? 'block' : 'none';
-    document.getElementById('quest-rituals').style.display = tab === 'rituals' ? 'block' : 'none';
-  }
-
-  // ==================== Quest check ====================
-  function toggleQuest(el) {
-    el.classList.toggle('done');
-  }
-
-  // ==================== Ritual complete ====================
-  function completeRitual(el) {
-    el.style.opacity = '0.5';
-    el.style.pointerEvents = 'none';
-    const energyEl = el.querySelector('.ritual-energy');
-    energyEl.textContent = 'Done!';
-    energyEl.style.color = 'var(--accent-glow)';
-  }
-
-  // ==================== Mood selector ====================
-  function selectMood(el) {
-    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-    el.classList.add('selected');
-    updateParticles();
-  }
-
-  // ==================== Inspiration cards ====================
-  const cards = [
-    { tag: 'Creative Flow', text: '"Your urge to act IS the signal.<br/>Trust the impulse. Inform, then move."' },
-    { tag: 'Rest & Restore', text: '"Stillness is not laziness.<br/>Your power recharges in silence."' },
-    { tag: 'Manifestor Energy', text: '"You don\'t need permission.<br/>You need clarity. Then act."' },
-    { tag: 'Inner Peace', text: '"The storm inside is not your enemy.<br/>It\'s your engine waiting for direction."' },
-    { tag: 'Connection', text: '"Inform those around you.<br/>Not for approval -- for flow."' },
-    { tag: 'Boundary Wisdom', text: '"Saying no is a creative act.<br/>It protects the space for your yes."' },
-    { tag: 'Initiation', text: '"You were designed to start things.<br/>Let others carry what you ignite."' },
-    { tag: 'Self-Trust', text: '"Your body knows before your mind.<br/>Listen to the pull, not the noise."' },
-  ];
-  let cardIndex = 0;
-  function drawCard() {
-    cardIndex = (cardIndex + 1) % cards.length;
-    const card = cards[cardIndex];
-    const el = document.querySelector('.inspiration-card');
-    el.style.opacity = '0';
-    el.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-      el.querySelector('.card-tag').textContent = `CARD #${(cardIndex + 1) * 7} / ${card.tag}`;
-      el.querySelector('.card-text').innerHTML = card.text;
-      el.style.opacity = '1';
-      el.style.transform = 'scale(1)';
-    }, 200);
-    el.style.transition = 'all 0.2s ease';
-  }
-
-  // ==================== Oracle ====================
-  function chooseDecision(el) {
-    document.querySelectorAll('.decision-option').forEach(o => {
-      o.style.borderColor = 'var(--border-subtle)';
-      o.style.background = 'var(--bg-card)';
-    });
-    el.style.borderColor = 'var(--accent-primary)';
-    el.style.background = 'rgba(124, 92, 252, 0.1)';
-  }
-
-  const oracleResponses = [
-    'Your gut already knows. The impulse you felt first -- that\'s your answer.',
-    'Wait one breath. If the urge remains, it\'s real. Move.',
-    'This decision doesn\'t need more data. It needs your courage.',
-    'Your Initiator guardian says: the timing is now.',
-    'Rest first. Clarity comes after stillness, not before.',
-  ];
-  function consultOracle() {
-    const statusEl = document.querySelector('.oracle-status');
-    const iconEl = document.querySelector('.oracle-icon');
-    iconEl.textContent = '\u2728';
-    statusEl.textContent = 'Reading your energy...';
-    setTimeout(() => {
-      const r = oracleResponses[Math.floor(Math.random() * oracleResponses.length)];
-      statusEl.textContent = r;
-      statusEl.style.fontSize = '12px';
-      iconEl.textContent = '\uD83D\uDD2E';
-    }, 1500);
-  }
-
-  // ==================== Focus Timer ====================
-  let focusRunning = false;
-  let focusSeconds = 25 * 60;
-  let focusInterval;
-  function toggleFocus(btn) {
-    if (!focusRunning) {
-      focusRunning = true;
-      btn.innerHTML = '&#9646;&#9646; Pause';
-      focusInterval = setInterval(() => {
-        focusSeconds--;
-        if (focusSeconds <= 0) {
-          clearInterval(focusInterval);
-          focusRunning = false;
-          btn.innerHTML = '&#9654; Start Focus';
-          focusSeconds = 25 * 60;
-        }
-        const m = Math.floor(focusSeconds / 60);
-        const s = focusSeconds % 60;
-        document.getElementById('focus-display').textContent =
-          String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-      }, 1000);
-    } else {
-      focusRunning = false;
-      clearInterval(focusInterval);
-      btn.innerHTML = '&#9654; Start Focus';
-    }
-  }
-
-  // ==================== Particle Garden ====================
-  const canvas = document.getElementById('gardenCanvas');
-  const ctx = canvas.getContext('2d');
-  let particles = [];
-
-  function resizeCanvas() {
-    const container = canvas.parentElement;
-    canvas.width = container.clientWidth * 2;
-    canvas.height = container.clientHeight * 2;
-    canvas.style.width = container.clientWidth + 'px';
-    canvas.style.height = container.clientHeight + 'px';
-    ctx.scale(2, 2);
-  }
-
-  function initParticles() {
-    resizeCanvas();
-    particles = [];
-    const w = canvas.width / 2;
-    const h = canvas.height / 2;
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: Math.random() * 4 + 2,
-        dx: (Math.random() - 0.5) * 0.6,
-        dy: (Math.random() - 0.5) * 0.6,
-        hue: 250 + Math.random() * 60,
-        alpha: Math.random() * 0.5 + 0.3,
-      });
-    }
-  }
-
-  function updateParticles() {
-    const selected = document.querySelector('.mood-btn.selected span');
-    if (!selected) return;
-    const mood = selected.textContent;
-    const moodConfig = {
-      Calm: { hueBase: 200, speed: 0.3, count: 40 },
-      Charged: { hueBase: 280, speed: 1.2, count: 80 },
-      Flowing: { hueBase: 250, speed: 0.6, count: 60 },
-      Drained: { hueBase: 220, speed: 0.15, count: 25 },
-      'Fired up': { hueBase: 20, speed: 1.0, count: 70 },
-    };
-    const cfg = moodConfig[mood] || moodConfig.Flowing;
-    const w = canvas.width / 2;
-    const h = canvas.height / 2;
-    particles = [];
-    for (let i = 0; i < cfg.count; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: Math.random() * 4 + 2,
-        dx: (Math.random() - 0.5) * cfg.speed,
-        dy: (Math.random() - 0.5) * cfg.speed,
-        hue: cfg.hueBase + Math.random() * 40,
-        alpha: Math.random() * 0.5 + 0.3,
-      });
-    }
-    const labels = {
-      Calm: 'Particles drift in peaceful stillness',
-      Charged: 'Energy particles buzzing with potential!',
-      Flowing: 'Your energy particles are flowing gently',
-      Drained: 'Particles resting, conserving energy...',
-      'Fired up': 'Particles ablaze with creative fire!',
-    };
-    document.querySelector('.garden-label').textContent = labels[mood] || '';
-  }
-
-  function drawParticles() {
-    const w = canvas.width / 2;
-    const h = canvas.height / 2;
-    ctx.clearRect(0, 0, w, h);
-
-    particles.forEach(p => {
-      p.x += p.dx;
-      p.y += p.dy;
-      if (p.x < 0 || p.x > w) p.dx *= -1;
-      if (p.y < 0 || p.y > h) p.dy *= -1;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${p.hue}, 70%, 65%, ${p.alpha})`;
-      ctx.fill();
-
-      // Glow
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${p.hue}, 70%, 65%, ${p.alpha * 0.15})`;
-      ctx.fill();
-    });
-
-    // Draw connections
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 60) {
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `hsla(260, 50%, 60%, ${0.1 * (1 - dist / 60)})`;
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
-      }
-    }
-
-    requestAnimationFrame(drawParticles);
-  }
-
-  // Init
-  initParticles();
-  drawParticles();
-  window.addEventListener('resize', () => {
-    resizeCanvas();
-    updateParticles();
-  });
-</script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
 
 </body>
 </html>
