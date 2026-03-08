@@ -1,112 +1,16 @@
-# Manifestor — 能量 RPG 🔮
+# React + Vite
 
-一款以「人類圖顯示者」能量管理為核心的遊戲化 Web App，將日常能量管理包裝成 RPG 體驗，幫助使用者追蹤心理能量、建立健康習慣。
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 技術架構
+Currently, two official plugins are available:
 
-| 項目 | 實現 |
-|------|------|
-| 前端 | 純 HTML/CSS/JS（無框架） |
-| 資料儲存 | localStorage |
-| 字型 | Noto Sans TC（Google Fonts） |
-| 部署方式 | 靜態網頁（可直接開啟 `index.html`） |
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-```
-manifestor/
-├── index.html        # 單頁應用主體（所有頁面）
-├── css/
-│   └── style.css     # 全域樣式 & 深色主題設計系統
-├── js/
-│   ├── db.js         # 資料層（localStorage CRUD、日期工具、等級計算）
-│   └── app.js        # 應用邏輯（UI 互動、渲染、動畫）
-├── feature.md        # 功能清單
-└── README.md
-```
+## React Compiler
 
----
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## 核心功能
+## Expanding the ESLint configuration
 
-### 🏠 首頁儀表板
-- SVG 能量環顯示今日能量值
-- 連續打卡天數、經驗值、等級一覽
-- 快速入口：任務、花園、神諭
-- 微小儀式（晨間呼吸、補水、晚間釋放）
-
-### 📝 每日打卡系統
-- 開啟頁面自動彈出打卡視窗（如果今天還沒打卡）
-- 記錄：能量值（0-100 滑桿）、心情狀態（5 種：平靜、充電中、流動、耗盡、燃燒）、筆記
-- 首頁顯示打卡橫幅，完成後標示「已完成」
-- 每次打卡獲得 30 XP
-
-### ⚡ 任務系統
-- 5 個每日能量任務（晨間掃描、創意爆發、界限宣告、無罪惡感休息、晚間回顧）
-- 勾選完成獲得 XP 獎勵（15-40 XP）
-
-### ⏱ 慢熱專注模式
-- 25 分鐘倒數計時器
-- 5 段漸進式專注階段
-- 完成獲得 50 XP，累計統計次數與時數
-
-### 🌸 心靈花園
-- Canvas 粒子動畫，依心情改變粒子行為（色相、速度、數量）
-- 粒子間距離小於 60px 時產生連線效果
-- 靈感卡片抽取（8 張內建卡片）
-
-### 🔮 決策神諭
-- 輸入猶豫的決定，選擇 A/B 選項
-- 神諭隨機回應（5 則內建回覆）
-- 內在守護者展示（守護者、創造者、療癒者、發起者）
-
-### 👤 個人檔案 & 盤點系統
-- **本週盤點**：每日能量柱狀圖、平均能量、打卡天數、心情分佈、能量洞察文字
-- **月度盤點**：能量熱力圖（依能量高低顯示深淺）、月度統計、心情分佈、月度洞察
-- **打卡紀錄**：完整歷史清單，含心情、能量值、筆記、完成的任務標籤
-- **成就徽章**：8 個徽章根據真實數據解鎖（7 日/30 日連續、專注次數等）
-- **能量夥伴**：聊天式 AI 助手介面
-
-### 💾 資料持久化（localStorage）
-- 打卡紀錄、任務完成、儀式完成、專注時數全部自動存儲
-- 重新開啟頁面會恢復今日的任務/儀式勾選狀態
-- 經驗值 & 等級系統，XP 從各項活動累積
-
-### 🏅 連續打卡 & 成就
-- 自動計算連續打卡天數
-- 8 個成就徽章根據真實數據解鎖（7 日連續、30 日連續、專注次數等）
-
----
-
-## 設計靈感 & 未來構想
-
-本專案整合了多個遊戲化 & 改變世界的概念：
-
-| # | 概念 | 遊戲化元素 | 世界影響 |
-|---|------|-----------|---------|
-| 1️⃣ | 個人能量時鐘 | 能量徽章、日常成就點數 | 幫助學生/遠距工作者建立健康工作節奏與心理韌性 |
-| 2️⃣ | 心情粒子視覺化 | 粒子組合產生稱號/虛擬花園 | 情緒共感社群，促進心理支持文化 |
-| 3️⃣ | Vibe 任務提醒器 | 升級角色能力/能量槽 | 改善工作生活平衡，降低過勞 |
-| 4️⃣ | 創作靈感卡片生成器 | 卡片等級、虛擬收藏品 | 全球創意交流平台 |
-| 5️⃣ | 內在守護系統模擬器 | 角色成長點、守護者技能 | 心理健康教育，理解自我情緒 |
-| 6️⃣ | 微小儀式倒數器 | 日常能量值、可愛動畫 | 日常自我照顧提醒，降低壓力焦慮 |
-| 7️⃣ | 慢熱專注模式 | 專注勳章、獎勵視覺效果 | 避免 Burnout 的健康工具 |
-| 8️⃣ | 能量負載分析 | 能量分數排行榜 | 促進心理健康文化和能量管理意識 |
-| 9️⃣ | 顯示者即時決策提示器 | 命運點數、故事結局 | 低內耗決策方式，降低焦慮拖延 |
-| 🔟 | Vibe Coding 對話夥伴 | RPG 助手、解鎖對話功能 | 心理健康/自我照顧社群互動 AI 助手 |
-
----
-
-## 已知問題 & 優化方向
-
-詳見 [analysis.md](.gemini/antigravity/brain/2e981f37-9270-4e01-906c-16ac16467f54/analysis.md)（優化方案分析文件）
-
-**優先修復項目：**
-- XSS 漏洞（`renderLog` 使用者筆記未轉義）
-- 資料備份/匯出功能
-- 粒子動畫效能（離開花園頁面不應持續運行）
-- 守護者等級動態化
-
----
-
-## 使用方式
-
-直接在瀏覽器開啟 `index.html` 即可使用，不需安裝任何依賴。
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
