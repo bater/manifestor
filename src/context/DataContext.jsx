@@ -1,5 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useCallback } from 'react'
+import { createContext, useState, useCallback, useEffect, useRef } from 'react'
+import { doc, setDoc, onSnapshot } from 'firebase/firestore'
+import { firestore } from '../lib/firebase'
+import { useAuth } from './useAuth'
 import { todayKey } from '../utils/dateUtils'
 
 const DB_KEY = 'manifestor_db'
@@ -15,25 +18,107 @@ const defaultDB = {
   gardenVisits: 0,
 }
 
-function loadDB() {
-  const raw = localStorage.getItem(DB_KEY)
-  if (!raw) return { ...defaultDB }
-  return { ...defaultDB, ...JSON.parse(raw) }
+function loadLocalDB() {
+  try {
+    const raw = localStorage.getItem(DB_KEY)
+    if (!raw) return { ...defaultDB }
+    return { ...defaultDB, ...JSON.parse(raw) }
+  } catch {
+    return { ...defaultDB }
+  }
 }
 
-function persistDB(db) {
+function persistLocal(db) {
   localStorage.setItem(DB_KEY, JSON.stringify(db))
 }
 
 export const DataContext = createContext(null)
 
 export function DataProvider({ children }) {
-  const [db, setDB] = useState(loadDB)
+  const { user } = useAuth()
+  const [db, setDB] = useState(loadLocalDB)
+  const [syncing, setSyncing] = useState(false)
+  const userRef = useRef(user)
+  // Track pending writes to skip their echo snapshots
+  const pendingWrites = useRef(0)
+  const migrated = useRef(false)
+
+  // Keep userRef in sync
+  useEffect(() => {
+    userRef.current = user
+  }, [user])
+
+  // Single Firestore effect: subscribe + migrate on first snapshot
+  useEffect(() => {
+    if (!user) {
+      migrated.current = false
+      return
+    }
+
+    const uid = user.uid
+    const userDocRef = doc(firestore, 'users', uid)
+    let isFirstSnapshot = true
+
+    const unsubscribe = onSnapshot(userDocRef, async (snapshot) => {
+      // Skip echoes from our own writes
+      if (pendingWrites.current > 0) {
+        pendingWrites.current--
+        return
+      }
+
+      if (isFirstSnapshot) {
+        isFirstSnapshot = false
+
+        if (!snapshot.exists() && !migrated.current) {
+          // First sign-in: migrate local data to Firestore
+          const localData = loadLocalDB()
+          const hasData = Object.keys(localData.checkins).length > 0 || localData.xp > 0
+          if (hasData) {
+            setSyncing(true)
+            try {
+              pendingWrites.current++
+              await setDoc(userDocRef, localData)
+              migrated.current = true
+            } catch (err) {
+              console.error('Migration error:', err)
+              pendingWrites.current = Math.max(0, pendingWrites.current - 1)
+            } finally {
+              setSyncing(false)
+            }
+          }
+          return
+        }
+      }
+
+      // Load remote data
+      if (snapshot.exists()) {
+        const firestoreData = { ...defaultDB, ...snapshot.data() }
+        setDB(firestoreData)
+        persistLocal(firestoreData)
+      }
+    }, (err) => {
+      console.error('Firestore sync error:', err)
+    })
+
+    return unsubscribe
+  }, [user])
 
   const updateDB = useCallback((updater) => {
     setDB(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater
-      persistDB(next)
+      persistLocal(next)
+
+      // Write to Firestore if authenticated (use ref to avoid stale closure)
+      const currentUser = userRef.current
+      if (currentUser) {
+        pendingWrites.current++
+        const userDocRef = doc(firestore, 'users', currentUser.uid)
+        setDoc(userDocRef, next).catch(err => {
+          console.error('Firestore write error:', err)
+          pendingWrites.current = Math.max(0, pendingWrites.current - 1)
+        })
+      }
+
       return next
     })
   }, [])
@@ -80,7 +165,7 @@ export function DataProvider({ children }) {
         ...prev,
         quests: { ...prev.quests, [key]: newQuests },
         checkins: updatedCheckins,
-        xp: (prev.xp || 0) + xpDelta,
+        xp: Math.max(0, (prev.xp || 0) + xpDelta),
       }
     })
   }, [updateDB])
@@ -110,7 +195,7 @@ export function DataProvider({ children }) {
   }, [updateDB])
 
   const addXP = useCallback((amount) => {
-    updateDB(prev => ({ ...prev, xp: (prev.xp || 0) + amount }))
+    updateDB(prev => ({ ...prev, xp: Math.max(0, (prev.xp || 0) + amount) }))
   }, [updateDB])
 
   const incrementCounter = useCallback((field, amount = 1) => {
@@ -119,6 +204,7 @@ export function DataProvider({ children }) {
 
   const value = {
     db,
+    syncing,
     submitCheckin,
     toggleQuest,
     completeRitual,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useData } from '../context/useData'
+import { useAuth } from '../context/useAuth'
 import { todayKey } from '../utils/dateUtils'
 import { calcLevel, calcStreak } from '../utils/xpUtils'
 import EnergyRing from '../components/EnergyRing'
@@ -15,6 +16,7 @@ const homeRituals = [
 export default function HomePage() {
   const navigate = useNavigate()
   const { db, completeRitual } = useData()
+  const { user } = useAuth()
   const [showCheckin, setShowCheckin] = useState(false)
 
   const key = todayKey()
@@ -24,6 +26,8 @@ export default function HomePage() {
   const todayQuests = db.quests[key] || []
   const todayRituals = db.rituals[key] || []
   const remaining = 5 - todayQuests.length
+  const displayName = user?.displayName || 'Manifestor'
+  const initial = displayName.charAt(0).toUpperCase()
 
   useEffect(() => {
     if (!today) {
@@ -41,9 +45,20 @@ export default function HomePage() {
       <div className="page-header">
         <div>
           <h1>Manifestor</h1>
-          <div className="subtitle">Ting 的能量儀表板</div>
+          <div className="subtitle">{displayName} 的能量儀表板</div>
         </div>
-        <div className="avatar" onClick={() => navigate('/profile')}>T</div>
+        {user?.photoURL ? (
+          <img
+            src={user.photoURL}
+            alt={displayName}
+            className="avatar"
+            style={{ objectFit: 'cover' }}
+            referrerPolicy="no-referrer"
+            onClick={() => navigate('/profile')}
+          />
+        ) : (
+          <div className="avatar" onClick={() => navigate('/profile')}>{initial}</div>
+        )}
       </div>
 
       <div

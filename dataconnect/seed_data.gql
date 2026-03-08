@@ -1,0 +1,84 @@
+mutation CreateDemoData @transaction @auth(level: USER, insecureReason: "Seed data for demo purposes, can be run by any logged-in user.") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      displayName: "Demo User 1",
+      email: "demo1@example.com",
+      createdAt: "2023-01-01T10:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      displayName: "Demo User 2",
+      email: "demo2@example.com",
+      createdAt: "2023-01-01T11:00:00Z"
+    }
+  ])
+  tag_insertMany(data: [
+    {
+      id: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      name: "Work",
+      description: "Tags related to work tasks.",
+      createdAt: "2023-01-01T09:00:00Z"
+    },
+    {
+      id: "f6e5d4c3-b2a1-0987-6543-210fedcba987",
+      name: "Personal",
+      description: "Tags for personal entries.",
+      createdAt: "2023-01-01T09:30:00Z"
+    }
+  ])
+  journalEntry_insertMany(data: [
+    {
+      id: "j1a2b3c4-d5e6-7890-1234-567890abcdef",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      content: "First entry from Demo User 1.",
+      entryDate: "2023-01-02",
+      moodRating: 5,
+      isPrivate: false,
+      createdAt: "2023-01-02T08:00:00Z",
+      updatedAt: "2023-01-02T08:00:00Z"
+    },
+    {
+      id: "j5f6g7h8-i9j0-1234-5678-90abcdef1234",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      content: "First entry from Demo User 2, feeling good!",
+      entryDate: "2023-01-03",
+      moodRating: 4,
+      isPrivate: false,
+      createdAt: "2023-01-03T09:00:00Z",
+      updatedAt: "2023-01-03T09:00:00Z"
+    }
+  ])
+  intention_insertMany(data: [
+    {
+      id: "i1a2b3c4-d5e6-7890-1234-567890abcdef",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      text: "Finish project report",
+      intentionDate: "2023-01-05",
+      isAchieved: false,
+      createdAt: "2023-01-01T12:00:00Z",
+      updatedAt: "2023-01-01T12:00:00Z"
+    },
+    {
+      id: "i5f6g7h8-i9j0-1234-5678-90abcdef1234",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      text: "Go for a run",
+      intentionDate: "2023-01-04",
+      isAchieved: true,
+      createdAt: "2023-01-01T13:00:00Z",
+      updatedAt: "2023-01-04T07:00:00Z"
+    }
+  ])
+  entryTag_insertMany(data: [
+    {
+      journalEntryId: "j1a2b3c4-d5e6-7890-1234-567890abcdef",
+      tagId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      createdAt: "2023-01-02T08:15:00Z"
+    },
+    {
+      journalEntryId: "j5f6g7h8-i9j0-1234-5678-90abcdef1234",
+      tagId: "f6e5d4c3-b2a1-0987-6543-210fedcba987",
+      createdAt: "2023-01-03T09:15:00Z"
+    }
+  ])
+}

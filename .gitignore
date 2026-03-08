@@ -23,5 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Firebase
+.firebase/
+
+# Environment
+.env
+
 # Claude Code
 .claude/

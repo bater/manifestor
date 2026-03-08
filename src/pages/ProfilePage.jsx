@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useData } from '../context/useData'
+import { useAuth } from '../context/useAuth'
 import { todayKey, getWeekDates, getMonthDates } from '../utils/dateUtils'
 import { calcLevel, calcStreak } from '../utils/xpUtils'
 
@@ -281,8 +282,13 @@ function BadgeGrid({ db }) {
 
 export default function ProfilePage() {
   const { db } = useData()
+  const { user, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState('weekly')
   const levelInfo = calcLevel(db.xp || 0)
+
+  const displayName = user?.displayName || 'Manifestor'
+  const initial = displayName.charAt(0).toUpperCase()
+  const photoURL = user?.photoURL
 
   return (
     <div className="page">
@@ -294,8 +300,18 @@ export default function ProfilePage() {
       </div>
 
       <div className="profile-header">
-        <div className="profile-avatar">T</div>
-        <div className="profile-name">Ting</div>
+        {photoURL ? (
+          <img
+            src={photoURL}
+            alt={displayName}
+            className="profile-avatar"
+            style={{ objectFit: 'cover' }}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="profile-avatar">{initial}</div>
+        )}
+        <div className="profile-name">{displayName}</div>
         <div className="profile-title">顯示者 / 能量建築師</div>
         <div className="profile-level">
           <div className="profile-level-text">等級 <strong>{levelInfo.level}</strong></div>
@@ -334,6 +350,19 @@ export default function ProfilePage() {
       <div className="chat-input-row">
         <input className="chat-input" type="text" placeholder="和你的能量夥伴聊聊..." />
         <button className="chat-send">{'\u279E'}</button>
+      </div>
+
+      <div style={{ marginTop: '32px', textAlign: 'center', paddingBottom: '16px' }}>
+        <button
+          className="btn-secondary"
+          style={{ padding: '10px 24px', fontSize: '13px', cursor: 'pointer' }}
+          onClick={signOut}
+        >
+          登出帳號
+        </button>
+        <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-dim)' }}>
+          {user?.email}
+        </div>
       </div>
     </div>
   )

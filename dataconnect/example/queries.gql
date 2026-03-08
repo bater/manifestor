@@ -1,0 +1,50 @@
+query ListAllTags @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public as it lists general tags.") {
+  tags {
+    id
+    name
+    description
+  }
+}
+
+query MyJournalEntries @auth(level: USER) {
+  journalEntries(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    content
+    entryDate
+    moodRating
+    isPrivate
+    createdAt
+    tags_via_EntryTag {
+      id
+      name
+    }
+  }
+}
+
+mutation CreateJournalEntry($content: String!, $entryDate: Date!, $moodRating: Int, $isPrivate: Boolean) @auth(level: USER) {
+  journalEntry_insert(data: {
+    userId_expr: "auth.uid",
+    content: $content,
+    entryDate: $entryDate,
+    moodRating: $moodRating,
+    isPrivate: $isPrivate,
+    createdAt_expr: "request.time",
+    updatedAt_expr: "request.time"
+  }) {
+    id
+  }
+}
+
+mutation UpdateMyIntention($id: UUID!, $text: String, $intentionDate: Date, $isAchieved: Boolean) @auth(level: USER) {
+  intention_update(
+    key: {id: $id, userId_expr: "auth.uid"},
+    data: {
+      text: $text,
+      intentionDate: $intentionDate,
+      isAchieved: $isAchieved,
+      updatedAt_expr: "request.time"
+    }
+  ) {
+    id
+  }
+}
